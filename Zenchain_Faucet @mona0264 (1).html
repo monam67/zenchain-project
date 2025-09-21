@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zenchain Faucet</title>
+  <style>
+    body {
+      background-color: #006400;
+      color: #008000;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header small {
+      display: block;
+      font-size: 12px;
+      color: #008000;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: #f0fff0;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 255, 127, 0.5);
+    }
+    .input-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid black;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    .invite-link {
+      background: #7fff7f;
+      padding: 10px;
+      border: 1px dashed white;
+      border-radius: 4px;
+      word-break: break-all;
+      margin-bottom: 10px;
+    }
+    button {
+      background-color: #006400;
+      color: #e6ffe6;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .send-link {
+      background-color: #006400;
+      color: #e6ffe6;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+    footer {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      color: #008000;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+    }
+    footer .star {
+      margin-left: 5px;
+      color: #ffd700;
+    }
+    .bottom-text {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: white;
+    }
+    .title {
+      font-size: 24px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="title">🚀 Zenchain Faucet 🚀</h1>
+    <small>You can claim faucet only once every 24 hours and you must hold less than 500 tokens.</small>
+  </header>
+  <div class="container">
+    <div class="input-group">
+      <label for="wallet">Wallet Address:</label>
+      <input type="text" id="wallet" placeholder="Enter your wallet address">
+    </div>
+    <div class="input-group">
+      <label>Share Link in X:</label>
+      <div class="invite-link" id="inviteLink">https://zenchain.org/faucet?ref=YOURCODE</div>
+      <button class="send-link" onclick="sendInvite()">Send Link</button>
+      <p>You can only receive the faucet if your token balance is less than 1000 ZTC.</p>
+    </div>
+    <button>Complete Faucet</button>
+  </div>
+  <footer style="position: fixed; bottom: 10px; left: 10px; color: white; font-size: 14px;">@mona0264</footer>
+  <div class="bottom-text">ZENCHAIN</div>
+  <script>
+    function sendInvite() {
+      const link = document.getElementById('inviteLink').innerText;
+      navigator.clipboard.writeText(link);
+      alert('Invite link copied to clipboard! Share it with your friend.');
+    }
+  </script>
+</body>
+</html>
