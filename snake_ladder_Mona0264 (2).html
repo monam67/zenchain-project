@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snake & Ladder - ZenChain</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #ffefba, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding-top: 40px;
+    }
+    #game-container {
+      border: 5px solid #333;
+      border-radius: 15px;
+      padding: 20px;
+      background: #fff9e6;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transform: translateX(50px);
+    }
+    h1 {
+      margin-bottom: 10px;
+      color: #d35400;
+    }
+    .zenchain {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #006400; /* سبز پررنگ */
+      margin-bottom: 5px;
+    }
+    canvas {
+      background: #fdf6e3;
+      border: 4px solid #333;
+      margin: 15px 0;
+      display: block;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #27ae60;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      font-family: Arial, sans-serif;
+    }
+    button:hover {
+      background: #2ecc71;
+    }
+    #status {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #2c3e50;
+      font-family: Arial, sans-serif;
+    }
+    footer {
+      text-align: center;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #2d3436;
+      margin-top: 20px;
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <h1 class="zenchain">ZenChain</h1>
+    <h1>Snake & Ladder</h1>
+    <canvas id="board" width="450" height="450"></canvas><br />
+    <button onclick="playTurn()">Roll Dice</button>
+    <p id="status">Click the button to start playing.</p>
+  </div>
+
+  <footer>ID: Mona0264</footer>
+
+  <script>
+    const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
+    const size = 10;
+    const cellSize = canvas.width / size;
+
+    let playerPos = 1;
+    let computerPos = 1;
+
+    const ladders = {4: 14, 9: 31, 20: 38, 28: 84, 40: 59};
+    const snakes = {17: 7, 54: 34, 62: 19, 87: 36, 98: 79};
+
+    function drawBoard() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let row = 0; row < size; row++) {
+        for (let col = 0; col < size; col++) {
+          let x = col * cellSize;
+          let y = row * cellSize;
+          ctx.fillStyle = (row + col) % 2 === 0 ? "#ffeaa7" : "#fab1a0";
+          ctx.fillRect(x, y, cellSize, cellSize);
+          ctx.strokeStyle = "#333";
+          ctx.strokeRect(x, y, cellSize, cellSize);
+
+          const rowFromBottom = size - 1 - row;
+          const num = rowFromBottom * size + (col + 1);
+
+          ctx.fillStyle = "#2d3436";
+          ctx.font = "bold 12px Arial";
+          ctx.fillText(num, x + 5, y + 15);
+        }
+      }
+      drawSnakesAndLadders();
+      drawPlayer(playerPos, "red");
+      drawPlayer(computerPos, "blue");
+    }
+
+    function posToCoord(pos) {
+      if (pos < 1) pos = 1;
+      if (pos > 100) pos = 100;
+
+      let rowFromBottom = Math.floor((pos - 1) / size);
+      let col = (pos - 1) % size;
+
+      return {
+        x: col * cellSize + cellSize / 2,
+        y: canvas.height - (rowFromBottom * cellSize + cellSize / 2),
+      };
+    }
+
+    function drawPlayer(pos, color) {
+      const { x, y } = posToCoord(pos);
+      ctx.beginPath();
+      ctx.arc(x, y, cellSize / 4, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    function drawSnakesAndLadders() {
+      ctx.lineWidth = 4;
+      for (let start in ladders) {
+        let s = posToCoord(parseInt(start));
+        let e = posToCoord(ladders[start]);
+        ctx.strokeStyle = "green";
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(e.x, e.y);
+        ctx.stroke();
+      }
+      for (let start in snakes) {
+        let s = posToCoord(parseInt(start));
+        let e = posToCoord(snakes[start]);
+        ctx.strokeStyle = "red";
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(e.x, e.y);
+        ctx.stroke();
+      }
+    }
+
+    function playTurn() {
+      let playerDice = Math.floor(Math.random() * 6) + 1;
+      let computerDice = Math.floor(Math.random() * 6) + 1;
+
+      playerPos += playerDice;
+      computerPos += computerDice;
+
+      let message = `You rolled ${playerDice} | Computer rolled ${computerDice}`;
+
+      if (playerPos in ladders) {
+        playerPos = ladders[playerPos];
+        message += " | You climbed a ladder!";
+      } else if (playerPos in snakes) {
+        playerPos = snakes[playerPos];
+        message += " | You got bitten by a snake!";
+      }
+
+      if (computerPos in ladders) {
+        computerPos = ladders[computerPos];
+        message += " | Computer climbed a ladder!";
+      } else if (computerPos in snakes) {
+        computerPos = snakes[computerPos];
+        message += " | Computer got bitten by a snake!";
+      }
+
+      if (playerPos >= 100 && computerPos >= 100) {
+        playerPos = 100;
+        computerPos = 100;
+        alert("It's a tie!");
+        message = "Game Over: It's a tie!";
+      } else if (playerPos >= 100) {
+        playerPos = 100;
+        alert("You win!");
+        message = "Game Over: You reached 100!";
+      } else if (computerPos >= 100) {
+        computerPos = 100;
+        alert("Computer wins!");
+        message = "Game Over: Computer reached 100!";
+      }
+
+      document.getElementById("status").innerText = message;
+      drawBoard();
+    }
+
+    drawBoard();
+  </script>
+</body>
+</html>
