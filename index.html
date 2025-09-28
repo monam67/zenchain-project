@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZenChain Dice Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #006400, #32CD32);
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            padding: 30px;
+            font-size: 2.5em;
+            font-weight: bold;
+            background-color: rgba(0, 100, 0, 0.8);
+        }
+        .dice-container {
+            margin: 50px 0;
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+        }
+        .dice {
+            font-size: 5em;
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        .result {
+            font-size: 2em;
+            margin: 30px 0;
+            color: #FFFFFF;
+        }
+        button {
+            font-size: 1.5em;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: #32CD32;
+            color: #006400;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #006400;
+            color: #32CD32;
+        }
+        footer {
+            margin-top: 50px;
+            padding: 20px;
+            font-size: 1.2em;
+            background-color: rgba(0, 100, 0, 0.8);
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .rolling {
+            animation: roll 0.5s linear infinite;
+        }
+        /* Wallet Button Styles */
+        .wallet-btn {
+            font-size: 1.5em;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: linear-gradient(45deg, #32CD32, #006400);
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            margin: 20px 0;
+        }
+        .wallet-btn:hover {
+            background: linear-gradient(45deg, #006400, #32CD32);
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        .wallet-btn:disabled {
+            background: gray;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <header>ZenChain Dice Game</header>
+    <!-- Wallet Connect Button -->
+    <div>
+        <button id="connectWalletBtn" class="wallet-btn">Connect Wallet</button>
+        <p id="walletAddress" style="margin-top: 10px; font-size: 1em; color: #FFFFFF;"></p>
+    </div>
+    <div class="dice-container">
+        <div>
+            <p>Your Dice</p>
+            <div class="dice" id="playerDice">🎲</div>
+        </div>
+        <div>
+            <p>Computer Dice</p>
+            <div class="dice" id="computerDice">🎲</div>
+        </div>
+    </div>
+    <button onclick="rollDice()">Roll Dice</button>
+    <div class="result" id="resultText">Click the button to play!</div>
+    <footer>ID: mona0264</footer>
+   <script>
+  const diceEmojis = ["🎲", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+  const zenChainParams = {
+    chainId: '0x20D8',
+    chainName: 'ZenChain Testnet',
+    nativeCurrency: {
+      name: 'ZenChain Token',
+      symbol: 'ZTC',
+      decimals: 18
+    },
+    rpcUrls: ['https://zenchain-testnet.api.onfinality.io/public'],
+    blockExplorerUrls: ['https://zenchain-testnet.explorer.io']
+  };
+
+  const connectWalletBtn = document.getElementById('connectWalletBtn');
+  const walletAddress = document.getElementById('walletAddress');
+  let connectedAddress = null;
+
+  async function connectWallet() {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        connectedAddress = accounts[0];
+        walletAddress.textContent = 'Wallet Address: ' + connectedAddress;
+
+        const currentChainId = await ethereum.request({ method: 'eth_chainId' });
+        if (currentChainId !== zenChainParams.chainId) {
+          await ethereum.request({ method: 'wallet_addEthereumChain', params: [zenChainParams] });
+          await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: zenChainParams.chainId }] });
+        }
+      } catch (error) {
+        console.error('Connection error:', error);
+      }
+    } else {
+      alert('MetaMask not detected. Please install MetaMask.');
+    }
+  }
+
+  async function sendZTC(to, amount) {
+    const valueInWei = '0x' + (amount * 1e18).toString(16);
+    try {
+      const txHash = await ethereum.request({
+        method: 'eth_sendTransaction',
+        params: [{
+          from: connectedAddress,
+          to: to,
+          value: valueInWei
+        }]
+      });
+
+      console.log(`Transaction hash: ${txHash}`);
+
+      // Wait for confirmation
+      let receipt = null;
+      let attempts = 0;
+      while (!receipt && attempts < 20) {
+        receipt = await ethereum.request({
+          method: 'eth_getTransactionReceipt',
+          params: [txHash]
+        });
+        if (!receipt) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          attempts++;
+        }
+      }
+
+      if (receipt && receipt.status === '0x1') {
+        console.log('Transaction confirmed');
+        return true;
+      } else {
+        console.error('Transaction failed or not confirmed');
+        return false;
+      }
+
+    } catch (err) {
+      console.error('Transaction error:', err);
+      return false;
+    }
+  }
+
+  async function rollDice() {
+    const playerDice = document.getElementById("playerDice");
+    const computerDice = document.getElementById("computerDice");
+    const resultText = document.getElementById("resultText");
+
+    if (!connectedAddress) {
+      alert("Please connect your wallet first.");
+      return;
+    }
+
+    resultText.textContent = "Waiting for transaction...";
+    const sent = await sendZTC(connectedAddress, 0.01);
+    if (!sent) {
+      resultText.textContent = "Transaction failed. Try again.";
+      return;
+    }
+
+    playerDice.classList.add("rolling");
+    computerDice.classList.add("rolling");
+    resultText.textContent = "Rolling...";
+
+    setTimeout(async () => {
+      playerDice.classList.remove("rolling");
+      computerDice.classList.remove("rolling");
+
+      const playerRoll = Math.floor(Math.random() * 6) + 1;
+      const computerRoll = Math.floor(Math.random() * 6) + 1;
+
+      playerDice.textContent = diceEmojis[playerRoll];
+      computerDice.textContent = diceEmojis[computerRoll];
+
+      if (playerRoll > computerRoll) {
+        resultText.textContent = "You Win!";
+        await sendZTC(connectedAddress, 0.02);
+      } else if (playerRoll < computerRoll) {
+        resultText.textContent = "You lost";
+      } else {
+        resultText.textContent = "It's a Tie!";
+      }
+    }, 1000);
+  }
+
+  connectWalletBtn.addEventListener('click', connectWallet);
+</script>
+</body>
+</html>
